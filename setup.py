@@ -15,5 +15,6 @@ setup(name='activity-recognition-chain',
           'numpy',
           'scipy',
           'scikit-learn',
+          'pandas',
       ],
       zip_safe=False)
