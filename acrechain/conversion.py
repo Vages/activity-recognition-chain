@@ -2,88 +2,91 @@ from __future__ import print_function
 
 import os
 import pandas as pd
+import subprocess
 
-OMCONVERT_LOCATION = os.path.join(os.path.dirname(os.path.abspath(__file__)), "axivity_dependencies", "omconvert", "omconvert")
-TIMESYNC_LOCATION = os.path.join(os.path.dirname(os.path.abspath(__file__)), "axivity_dependencies", "timesync", "timesync")
+OMCONVERT_SCRIPT_LOCATION = os.path.join(os.path.dirname(os.path.abspath(__file__)), "axivity_dependencies",
+                                         "omconvert", "omconvert")
+TIMESYNC_LOCATION = os.path.join(os.path.dirname(os.path.abspath(__file__)), "axivity_dependencies",
+                                 "timesync", "timesync")
 
 
-def run_omconvert(input_cwa, output_wav=None, output_csv=None):
-    import subprocess
+def run_omconvert(input_cwa, output_wav_path=None, output_csv_path=None):
+    omconvert_script = OMCONVERT_SCRIPT_LOCATION
 
-    omconvert = OMCONVERT_LOCATION
+    shell_command = [omconvert_script, input_cwa]
 
-    command = [omconvert, input_cwa]
+    if output_wav_path is not None:
+        print("WAV file will be output to", output_wav_path)
+        shell_command += ['-out', output_wav_path]
 
-    if output_csv is not None:
-        command += ['-csv-file', output_csv]
+    if output_csv_path is not None:
+        print("CSV file will be output to", output_csv_path)
+        shell_command += ['-csv-file', output_csv_path]
 
-    if output_wav is not None:
-        command += ['-out', output_wav]
-
-    if not os.path.exists(OMCONVERT_LOCATION):
+    if not os.path.exists(OMCONVERT_SCRIPT_LOCATION):
         print("Did not find a compiled version of OMconvert. "
               "Building OMconvert from source. This may take a while.")
-        omconvert_directory = os.path.join(os.path.dirname(omconvert))
-        make_call = ["make", "-C", omconvert_directory]
-        subprocess.call(make_call)
+        omconvert_directory = os.path.join(os.path.dirname(omconvert_script))
+        make_omconvert_call = ["make", "-C", omconvert_directory]
+        subprocess.call(make_omconvert_call)
 
-    subprocess.call(command)
+    subprocess.call(shell_command)
+    print("OMconvert finished.")
 
 
-def timesync_from_cwa(cwas, output_csv, clean_up=True, nrows=None):
-    import subprocess
+def timesync_from_cwa(master_cwa, slave_cwa, master_csv=None, slave_csv=None, time_csv=None, clean_up=True):
+    timesync_script = TIMESYNC_LOCATION
 
-    timesync = TIMESYNC_LOCATION
-
-    output_folder = os.path.split(output_csv)[0]
-
-    master_cwa = cwas[0]
-
-    slave_cwas = cwas[1:]
+    output_folder = os.path.dirname(master_cwa)
 
     master_wav = os.path.splitext(master_cwa)[0] + ".wav"
-    run_omconvert(master_cwa, output_wav=master_wav)
+    slave_wav = os.path.splitext(slave_cwa)[0] + ".wav"
 
-    wav_files = [master_wav]
-    csv_files = []
+    if master_csv is None:
+        master_csv = os.path.splitext(master_cwa)[0] + ".csv"
+
+    if slave_csv is None:
+        slave_csv = os.path.splitext(slave_cwa)[0] + ".csv"
+
+    print("Converting master and slave CWA files to intermediary WAV files")
+    run_omconvert(master_cwa, output_wav_path=master_wav)
+    run_omconvert(slave_cwa, output_wav_path=slave_wav)
+
+    timesync_output_path = os.path.join(output_folder, "timesync_output.csv")
+
+    intermediary_files = [master_wav, slave_wav, timesync_output_path]
 
     if not os.path.exists(TIMESYNC_LOCATION):
         print("Did not find a compiled version of Timesync. "
               "Building Timesync from source. This may take a while.")
-        timesync_directory = os.path.join(os.path.dirname(timesync))
+        timesync_directory = os.path.dirname(timesync_script)
         make_call = ["make", "-C", timesync_directory]
         subprocess.call(make_call)
 
-    for i, s in enumerate(slave_cwas):
-        s_prefix = os.path.splitext(s)[0]
-        slave_wav = s_prefix + ".wav"
-        wav_files.append(slave_wav)
-        run_omconvert(s, output_wav=slave_wav)
+    print("Running Timesync")
+    subprocess.call([timesync_script, master_wav, slave_wav, "-csv", timesync_output_path])
 
-        # Synchronize them and make them a CSV
-        tmp_output_path = os.path.join(output_folder, s_prefix + ".csv")
+    synchronized_data_frame = pd.read_csv(timesync_output_path, parse_dates=[0], header=None)
 
-        csv_files.append(tmp_output_path)
-        subprocess.call([timesync, master_wav, slave_wav, "-csv", tmp_output_path])
+    synchronized_data_frame.to_csv(master_csv, header=False, index=False, columns=[1, 2, 3])
+    print("Master accelerometer values saved to", master_csv)
+    synchronized_data_frame.to_csv(slave_csv, header=False, index=False, columns=[4, 5, 6])
+    print("Slave accelerometer values saved to", slave_csv)
 
-    first_csv_file = csv_files[0]
-    first_dataframe = pd.read_csv(first_csv_file, parse_dates=[0], header=None, nrows=nrows)
-
-    if len(csv_files) == 1:
-        os.rename(first_csv_file, output_csv)
-        csv_files.remove(first_csv_file)
-        output_dataframe = first_dataframe
-    else:
-        data_frames = [first_dataframe]
-        for next_csv in csv_files[1:]:
-            data_frames.append(pd.read_csv(next_csv, header=None, usecols=[4, 5, 6], nrows=nrows))
-
-        output_dataframe = pd.concat(data_frames, axis=1, ignore_index=True)
-        output_dataframe.to_csv(output_csv, header=False, index=False)
+    if time_csv:
+        synchronized_data_frame.to_csv(time_csv, header=False, index=False, columns=[0])
+        print("Time stamps saved to", time_csv)
 
     if clean_up:
-        print("Cleaning up files")
-        for f in csv_files + wav_files:
+        print("Removing intermediary files", intermediary_files)
+        for f in intermediary_files:
             subprocess.call(["rm", f])
+    else:
+        print("'clean_up' parameter set to false. "
+              "The following intermediary files will remain on disk:", intermediary_files)
 
-    return output_dataframe
+
+if __name__ == "__main__":
+    cwa_1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), "S03_LB.cwa")
+    cwa_2 = os.path.join(os.path.dirname(os.path.abspath(__file__)), "S03_RT.cwa")
+    timesync_from_cwa(cwa_1, cwa_2)
