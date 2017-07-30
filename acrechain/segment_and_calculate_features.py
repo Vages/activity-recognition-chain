@@ -192,8 +192,8 @@ def frequency_domain_factory(sample_rate):
     return frequency_domain_features
 
 
-def segment_and_calculate(sensor_data, sampling_rate=100, window_length=3.0, overlap=0.0,
-                          remove_sign_after_calculation=True):
+def segment_acceleration_and_calculate_features(sensor_data, sampling_rate=100, window_length=3.0, overlap=0.0,
+                                                remove_sign_after_calculation=True):
     functions = [
         means_and_std_factory(False),
         means_and_std_factory(True),
@@ -237,3 +237,22 @@ def segment_and_calculate(sensor_data, sampling_rate=100, window_length=3.0, ove
         np.absolute(one_large_array, one_large_array)
 
     return one_large_array
+
+
+def segment_labels(label_data, sampling_rate=100, window_length=3.0, overlap=0.0):
+    window_samples = int(sampling_rate * window_length)
+    step_size = int(round(window_samples * (1.0 - overlap)))
+
+    labels = []
+
+    for window_start in np.arange(0, label_data.shape[0], step_size):
+        window_start = int(round(window_start))
+        window_end = window_start + int(round(window_samples))
+        if window_end > label_data.shape[0]:
+            break
+        window = label_data[window_start:window_end]
+        counts = Counter(window)
+        top = counts.most_common(1)[0][0]
+        labels.append(top)
+
+    return np.array(labels)
