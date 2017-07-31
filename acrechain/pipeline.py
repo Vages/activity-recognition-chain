@@ -2,9 +2,9 @@ import numpy as np
 import pickle
 import itertools
 import os
-from conversion import timesync_from_cwa
-from load_csvs import load_accelerometer_csv
-from segment_and_calculate_features import segment_acceleration_and_calculate_features
+from .conversion import timesync_from_cwa
+from .load_csvs import load_accelerometer_csv
+from .segment_and_calculate_features import segment_acceleration_and_calculate_features
 
 my_folder = os.path.dirname(os.path.abspath(__file__))
 default_model_path = os.path.join(my_folder, "healthy_3s_model.pickle")
