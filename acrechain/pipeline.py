@@ -40,6 +40,3 @@ def complete_end_to_end_prediction(back_cwa, thigh_cwa, end_result_path, sklearn
 
     for tmp_file in [back_csv_path, thigh_csv_path, time_csv_path]:
         os.remove(tmp_file)
-
-if __name__ == "__main__":
-    complete_end_to_end_prediction(os.path.join(my_folder, "S03_LB.cwa"), os.path.join(my_folder, "S03_RT.cwa"), os.path.join(my_folder, "timestamped_predictions.csv"))
