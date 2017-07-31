@@ -8,7 +8,7 @@ An implementation of the Activity Recognition Chain described in Bulling et al.â
 
 ## Installation
 ```
-pip install https://github.com/Vages/activity-recognition-chain.git
+pip install git+https://github.com/Vages/activity-recognition-chain.git
 ```
 
 ## Usage
