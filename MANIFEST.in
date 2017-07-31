@@ -1,2 +1,2 @@
-include healthy_3s_model.pickle
-include axivity_dependencies/*
+include acrechain/healthy_3s_model.pickle
+include acrechain/axivity_dependencies/*
