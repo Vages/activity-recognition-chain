@@ -1,2 +1,3 @@
 include acrechain/healthy_3s_model.pickle
-include acrechain/axivity_dependencies/*
+include acrechain/axivity_dependencies/omconvert/*
+include acrechain/axivity_dependencies/timesync/*
