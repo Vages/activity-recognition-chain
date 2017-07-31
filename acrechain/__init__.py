@@ -1,3 +1,4 @@
 from .load_csvs import load_accelerometer_csv, load_label_csv
 from .segment_and_calculate_features import segment_acceleration_and_calculate_features, segment_labels
 from .conversion import timesync_from_cwa, run_omconvert
+from .pipeline import complete_end_to_end_prediction

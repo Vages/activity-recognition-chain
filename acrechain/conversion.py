@@ -48,6 +48,9 @@ def timesync_from_cwa(master_cwa, slave_cwa, master_csv=None, slave_csv=None, ti
     if slave_csv is None:
         slave_csv = os.path.splitext(slave_cwa)[0] + ".csv"
 
+    if time_csv is None:
+        time_csv = os.path.splitext(master_cwa)[0] + "_timestamps.csv"
+
     print("Converting master and slave CWA files to intermediary WAV files")
     run_omconvert(master_cwa, output_wav_path=master_wav)
     run_omconvert(slave_cwa, output_wav_path=slave_wav)
@@ -72,10 +75,8 @@ def timesync_from_cwa(master_cwa, slave_cwa, master_csv=None, slave_csv=None, ti
     print("Master accelerometer values saved to", master_csv)
     synchronized_data_frame.to_csv(slave_csv, header=False, index=False, columns=[4, 5, 6])
     print("Slave accelerometer values saved to", slave_csv)
-
-    if time_csv:
-        synchronized_data_frame.to_csv(time_csv, header=False, index=False, columns=[0])
-        print("Time stamps saved to", time_csv)
+    synchronized_data_frame.to_csv(time_csv, header=False, index=False, columns=[0])
+    print("Time stamps saved to", time_csv)
 
     if clean_up:
         print("Removing intermediary files", intermediary_files)
@@ -84,6 +85,8 @@ def timesync_from_cwa(master_cwa, slave_cwa, master_csv=None, slave_csv=None, ti
     else:
         print("'clean_up' parameter set to false. "
               "The following intermediary files will remain on disk:", intermediary_files)
+
+    return master_csv, slave_csv, time_csv
 
 
 if __name__ == "__main__":
