@@ -17,4 +17,5 @@ setup(name='activity-recognition-chain',
           'scikit-learn',
           'pandas',
       ],
+      include_package_data=True,
       zip_safe=False)
