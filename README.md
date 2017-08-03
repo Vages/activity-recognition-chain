@@ -8,7 +8,7 @@ An implementation of the Activity Recognition Chain described in Bulling et al.â
 
 ## Installation
 ```
-pip install https://github.com/Vages/activity-recognition-chain.git
+pip install git+https://github.com/Vages/activity-recognition-chain.git
 ```
 
 ## Usage
@@ -18,7 +18,29 @@ To get predictions from two CWA files sampled at 100 Hz:
 ```python
 from acrechain import complete_end_to_end_prediction
 
-complete_end_to_end_prediction(back_cwa, thigh_cwa, end_result_path)
+complete_end_to_end_prediction("/path/to/back.cwa", "/path/to/thigh.cwa", "/path/to/output.csv")
+```
+
+The file at `/path/to/output.csv` should look something like this:
+
+```
+2016-11-22 12:00:00.000, 7
+2016-11-22 12:00:03.000, 7
+2016-11-22 12:00:06.000, 8
+2016-11-22 12:00:09.000, 8
+2016-11-22 12:00:12.000, 8
+2016-11-22 12:00:15.000, 8
+2016-11-22 12:00:18.000, 8
+2016-11-22 12:00:21.000, 8
+2016-11-22 12:00:24.000, 8
+2016-11-22 12:00:27.000, 8
+2016-11-22 12:00:30.000, 8
+2016-11-22 12:00:33.000, 8
+2016-11-22 12:00:36.000, 8
+2016-11-22 12:00:39.000, 8
+2016-11-22 12:00:42.000, 8
+2016-11-22 12:00:45.000, 8
+â€¦
 ```
 
 ### Other sampling frequencies
