@@ -20,9 +20,9 @@ def complete_end_to_end_prediction(back_cwa, thigh_cwa, end_result_path, sklearn
     back_csv_path, thigh_csv_path, time_csv_path = timesync_from_cwa(back_cwa, thigh_cwa)
     back_acceleration, thigh_acceleration = load_accelerometer_csv(back_csv_path), load_accelerometer_csv(
         thigh_csv_path)
-    back_features = segment_acceleration_and_calculate_features(back_acceleration, sampling_rate=sampling_rate,
+    back_features = segment_acceleration_and_calculate_features(back_acceleration, sampling_rate=sampling_frequency,
                                                                 window_length=window_length, overlap=overlap)
-    thigh_features = segment_acceleration_and_calculate_features(thigh_acceleration, sampling_rate=sampling_rate,
+    thigh_features = segment_acceleration_and_calculate_features(thigh_acceleration, sampling_rate=sampling_frequency,
                                                                  window_length=window_length, overlap=overlap)
 
     all_features = np.hstack([back_features, thigh_features])
