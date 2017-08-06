@@ -3,7 +3,7 @@
 from setuptools import setup
 
 setup(name='activity-recognition-chain',
-      version='0.2.1',
+      version='0.2.2',
       description='An implementation of the Activity Recognition Chain described in Bulling et al.’s 2014 paper “A '
                   'Tutorial on Human Activity Recognition Using Body-Worn Inertial Sensors” with Scikit-learn’s '
                   'Random Forests Classifiers',

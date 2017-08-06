@@ -9,15 +9,21 @@ from .segment_and_calculate_features import segment_acceleration_and_calculate_f
 
 my_folder = os.path.dirname(os.path.abspath(__file__))
 default_model_path = os.path.join(my_folder, "healthy_3s_model.pickle")
-with open(default_model_path, "rb") as f:
-    default_model = pickle.load(f)
+
+model_paths = {100: os.path.join(my_folder, "healthy_3s_model.pickle"),
+               50: os.path.join(my_folder, "healthy_3s_model_50hz.pickle")}
+
+models = dict()
+
+for hz in model_paths:
+    with open(model_paths[hz], "rb") as f:
+        models[hz] = pickle.load(f)
 
 window_length = 3.0
 overlap = 0.0
 
 
-def complete_end_to_end_prediction(back_cwa, thigh_cwa, end_result_path, sklearn_model=default_model,
-                                   sampling_frequency=100):
+def complete_end_to_end_prediction(back_cwa, thigh_cwa, end_result_path, sampling_frequency=100):
     a = time()
     back_csv_path, thigh_csv_path, time_csv_path = timesync_from_cwa(back_cwa, thigh_cwa)
     b = time()
@@ -34,7 +40,7 @@ def complete_end_to_end_prediction(back_cwa, thigh_cwa, end_result_path, sklearn
     print("TIME: Feature extraction:", format(b-a, ".2f"), "s")
 
     a = time()
-    predictions = sklearn_model.predict(all_features)
+    predictions = models[sampling_frequency].predict(all_features)
     b = time()
     print("TIME: Prediction:", format(b - a, ".2f"), "s")
     time_stamp_skip = int(sampling_frequency * window_length * (1.0 - overlap))
