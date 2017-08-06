@@ -42,8 +42,6 @@ def complete_end_to_end_prediction(back_cwa, thigh_cwa, end_result_path, sklearn
     with open(time_csv_path, "r") as t:
         time_stamp_lines = [_.strip() for _ in itertools.islice(t, 0, None, time_stamp_skip)]
 
-    print(len(predictions), len(time_stamp_lines))
-
     output_lines = [tsl + ", " + str(pred) + "\n" for tsl, pred in zip(time_stamp_lines, predictions)]
 
     with open(end_result_path, "w") as ef:
