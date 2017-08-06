@@ -16,6 +16,7 @@ setup(name='activity-recognition-chain',
           'scipy',
           'scikit-learn',
           'pandas',
+          'joblib',
       ],
       include_package_data=True,
       zip_safe=False)
