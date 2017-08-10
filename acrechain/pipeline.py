@@ -8,10 +8,18 @@ from .load_csvs import load_accelerometer_csv
 from .segment_and_calculate_features import segment_acceleration_and_calculate_features
 
 my_folder = os.path.dirname(os.path.abspath(__file__))
-default_model_path = os.path.join(my_folder, "healthy_3s_model.pickle")
 
-model_paths = {100: os.path.join(my_folder, "healthy_3s_model.pickle"),
-               50: os.path.join(my_folder, "healthy_3s_model_50hz.pickle")}
+model_paths = {
+    100: os.path.join(my_folder, "healthy_3.0s_model_100.0hz.pickle"),
+    50: os.path.join(my_folder, "healthy_3.0s_model_50.0hz.pickle"),
+    25: os.path.join(my_folder, "healthy_3.0s_model_25.0hz.pickle"),
+    20: os.path.join(my_folder, "healthy_3.0s_model_20.0hz.pickle"),
+    10: os.path.join(my_folder, "healthy_3.0s_model_10.0hz.pickle"),
+    5: os.path.join(my_folder, "healthy_3.0s_model_5.0hz.pickle"),
+    4: os.path.join(my_folder, "healthy_3.0s_model_4.0hz.pickle"),
+    2: os.path.join(my_folder, "healthy_3.0s_model_2.0hz.pickle"),
+    1: os.path.join(my_folder, "healthy_3.0s_model_1.0hz.pickle"),
+}
 
 models = dict()
 
@@ -27,7 +35,7 @@ def complete_end_to_end_prediction(back_cwa, thigh_cwa, end_result_path, samplin
     a = time()
     back_csv_path, thigh_csv_path, time_csv_path = timesync_from_cwa(back_cwa, thigh_cwa)
     b = time()
-    print("TIME: Conversion and sync:", format(b-a, ".2f"), "s")
+    print("TIME: Conversion and sync:", format(b - a, ".2f"), "s")
     a = time()
     back_acceleration, thigh_acceleration = load_accelerometer_csv(back_csv_path), load_accelerometer_csv(
         thigh_csv_path)
@@ -37,7 +45,7 @@ def complete_end_to_end_prediction(back_cwa, thigh_cwa, end_result_path, samplin
                                                                  window_length=window_length, overlap=overlap)
     all_features = np.hstack([back_features, thigh_features])
     b = time()
-    print("TIME: Feature extraction:", format(b-a, ".2f"), "s")
+    print("TIME: Feature extraction:", format(b - a, ".2f"), "s")
 
     a = time()
     predictions = models[sampling_frequency].predict(all_features)

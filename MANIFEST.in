@@ -1,4 +1,3 @@
-include acrechain/healthy_3s_model.pickle
-include acrechain/healthy_3s_model_50hz.pickle
+include acrechain/healthy_3s_model_*hz.pickle
 include acrechain/axivity_dependencies/omconvert/*
 include acrechain/axivity_dependencies/timesync/*
