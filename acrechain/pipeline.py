@@ -7,18 +7,18 @@ from .conversion import timesync_from_cwa
 from .load_csvs import load_accelerometer_csv
 from .segment_and_calculate_features import segment_acceleration_and_calculate_features
 
-my_folder = os.path.dirname(os.path.abspath(__file__))
+model_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models")
 
 model_paths = {
-    100: os.path.join(my_folder, "healthy_3.0s_model_100.0hz.pickle"),
-    50: os.path.join(my_folder, "healthy_3.0s_model_50.0hz.pickle"),
-    25: os.path.join(my_folder, "healthy_3.0s_model_25.0hz.pickle"),
-    20: os.path.join(my_folder, "healthy_3.0s_model_20.0hz.pickle"),
-    10: os.path.join(my_folder, "healthy_3.0s_model_10.0hz.pickle"),
-    5: os.path.join(my_folder, "healthy_3.0s_model_5.0hz.pickle"),
-    4: os.path.join(my_folder, "healthy_3.0s_model_4.0hz.pickle"),
-    2: os.path.join(my_folder, "healthy_3.0s_model_2.0hz.pickle"),
-    1: os.path.join(my_folder, "healthy_3.0s_model_1.0hz.pickle"),
+    100: os.path.join(model_folder, "healthy_3.0s_model_100.0hz.pickle"),
+    50: os.path.join(model_folder, "healthy_3.0s_model_50.0hz.pickle"),
+    25: os.path.join(model_folder, "healthy_3.0s_model_25.0hz.pickle"),
+    20: os.path.join(model_folder, "healthy_3.0s_model_20.0hz.pickle"),
+    10: os.path.join(model_folder, "healthy_3.0s_model_10.0hz.pickle"),
+    5: os.path.join(model_folder, "healthy_3.0s_model_5.0hz.pickle"),
+    4: os.path.join(model_folder, "healthy_3.0s_model_4.0hz.pickle"),
+    2: os.path.join(model_folder, "healthy_3.0s_model_2.0hz.pickle"),
+    1: os.path.join(model_folder, "healthy_3.0s_model_1.0hz.pickle"),
 }
 
 models = dict()
