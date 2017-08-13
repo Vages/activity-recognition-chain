@@ -39,6 +39,9 @@ def timesync_from_cwa(master_cwa, slave_cwa, master_csv=None, slave_csv=None, ti
 
     output_folder = os.path.dirname(master_cwa)
 
+    master_basename_without_extension = os.path.splitext(os.path.basename(master_cwa))[0]
+    slave_basename_without_extension = os.path.splitext(os.path.basename(slave_cwa))[0]
+
     master_wav = os.path.splitext(master_cwa)[0] + ".wav"
     slave_wav = os.path.splitext(slave_cwa)[0] + ".wav"
 
@@ -55,7 +58,8 @@ def timesync_from_cwa(master_cwa, slave_cwa, master_csv=None, slave_csv=None, ti
     run_omconvert(master_cwa, output_wav_path=master_wav)
     run_omconvert(slave_cwa, output_wav_path=slave_wav)
 
-    timesync_output_path = os.path.join(output_folder, "timesync_output.csv")
+    timesync_output_path = os.path.join(output_folder,
+                                        master_basename_without_extension + "_" + slave_basename_without_extension + "_timesync_output.csv")
 
     intermediary_files = [master_wav, slave_wav, timesync_output_path]
 
