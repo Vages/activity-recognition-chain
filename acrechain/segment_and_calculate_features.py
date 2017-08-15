@@ -251,8 +251,13 @@ def segment_labels(label_data, sampling_rate=100, window_length=3.0, overlap=0.0
         if window_end > label_data.shape[0]:
             break
         window = label_data[window_start:window_end]
-        counts = Counter(window)
-        top = counts.most_common(1)[0][0]
+        top = find_majority_activity(window)
         labels.append(top)
 
     return np.array(labels)
+
+
+def find_majority_activity(window):
+    counts = Counter(window)
+    top = counts.most_common(1)[0][0]
+    return top

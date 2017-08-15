@@ -3,6 +3,7 @@ from __future__ import print_function
 import os
 import pandas as pd
 import subprocess
+import time
 
 OMCONVERT_SCRIPT_LOCATION = os.path.join(os.path.dirname(os.path.abspath(__file__)), "axivity_dependencies",
                                          "omconvert", "omconvert")
@@ -73,14 +74,32 @@ def timesync_from_cwa(master_cwa, slave_cwa, master_csv=None, slave_csv=None, ti
     print("Running Timesync")
     subprocess.call([timesync_script, master_wav, slave_wav, "-csv", timesync_output_path])
 
-    synchronized_data_frame = pd.read_csv(timesync_output_path, parse_dates=[0], header=None)
+    newline = "\n"
+    with open(timesync_output_path, 'r') as synchronized_csv_filereader, \
+            open(time_csv, 'w') as time_csv_file_writer, \
+            open(master_csv, 'w') as master_csv_file_writer, \
+            open(slave_csv, 'w') as slave_csv_file_writer:
+        for line in synchronized_csv_filereader:
+            line_as_str_array = line.strip().split(",")
+            time_line_data = line_as_str_array[0]
+            master_line_data = line_as_str_array[1:4]
+            slave_line_data = line_as_str_array[4:7]
 
+            time_csv_file_writer.write(time_line_data + newline)
+            master_csv_file_writer.write(",".join(master_line_data) + newline)
+            slave_csv_file_writer.write(",".join(slave_line_data) + newline)
+
+    """
+    synchronized_data_frame = pd.read_csv(timesync_output_path, parse_dates=[0], header=None)
+    
+    
     synchronized_data_frame.to_csv(master_csv, header=False, index=False, columns=[1, 2, 3])
     print("Master accelerometer values saved to", master_csv)
     synchronized_data_frame.to_csv(slave_csv, header=False, index=False, columns=[4, 5, 6])
     print("Slave accelerometer values saved to", slave_csv)
     synchronized_data_frame.to_csv(time_csv, header=False, index=False, columns=[0])
     print("Time stamps saved to", time_csv)
+    """
 
     if clean_up:
         print("Removing intermediary files", intermediary_files)

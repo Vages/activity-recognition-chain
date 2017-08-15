@@ -3,8 +3,10 @@ import pickle
 import itertools
 import os
 from time import time
+
+import pandas.errors
+import pandas as pd
 from .conversion import timesync_from_cwa
-from .load_csvs import load_accelerometer_csv
 from .segment_and_calculate_features import segment_acceleration_and_calculate_features
 
 model_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models")
@@ -37,20 +39,9 @@ def complete_end_to_end_prediction(back_cwa, thigh_cwa, end_result_path, samplin
     b = time()
     print("TIME: Conversion and sync:", format(b - a, ".2f"), "s")
     a = time()
-    back_acceleration, thigh_acceleration = load_accelerometer_csv(back_csv_path), load_accelerometer_csv(
-        thigh_csv_path)
-    back_features = segment_acceleration_and_calculate_features(back_acceleration, sampling_rate=sampling_frequency,
-                                                                window_length=window_length, overlap=overlap)
-    thigh_features = segment_acceleration_and_calculate_features(thigh_acceleration, sampling_rate=sampling_frequency,
-                                                                 window_length=window_length, overlap=overlap)
-    all_features = np.hstack([back_features, thigh_features])
+    predictions = load_csv_and_extract_features(back_csv_path, thigh_csv_path, sampling_frequency)
     b = time()
-    print("TIME: Feature extraction:", format(b - a, ".2f"), "s")
-
-    a = time()
-    predictions = models[sampling_frequency].predict(all_features)
-    b = time()
-    print("TIME: Prediction:", format(b - a, ".2f"), "s")
+    print("TIME: Feature extraction and prediction:", format(b - a, ".2f"), "s")
     time_stamp_skip = int(sampling_frequency * window_length * (1.0 - overlap))
     a = time()
     with open(time_csv_path, "r") as t:
@@ -65,3 +56,40 @@ def complete_end_to_end_prediction(back_cwa, thigh_cwa, end_result_path, samplin
 
     for tmp_file in [back_csv_path, thigh_csv_path, time_csv_path]:
         os.remove(tmp_file)
+
+
+def load_csv_and_extract_features(back_csv_path, thigh_csv_path, sampling_frequency):
+    number_of_samples_in_a_window = int(sampling_frequency * window_length)
+    number_of_windows_to_read = 300  # Read and predict 15 minutes at a time
+    number_of_samples_to_read = number_of_samples_in_a_window * number_of_windows_to_read
+
+    window_start = 0
+
+
+    predictions = []
+    while True:
+        try:
+            this_back_window = pd.read_csv(back_csv_path, skiprows=window_start, nrows=number_of_samples_to_read, delimiter=",", header=None).as_matrix()
+            this_thigh_window = pd.read_csv(thigh_csv_path, skiprows=window_start, nrows=number_of_samples_to_read, delimiter=",", header=None).as_matrix()
+
+            window_start += number_of_samples_to_read
+
+            back_features = segment_acceleration_and_calculate_features(this_back_window, sampling_rate=sampling_frequency, window_length=window_length, overlap=overlap)
+            thigh_features = segment_acceleration_and_calculate_features(this_thigh_window, sampling_rate=sampling_frequency, window_length=window_length, overlap=overlap)
+
+            boths_features = np.hstack((back_features, thigh_features))
+            this_windows_predictions = models[sampling_frequency].predict(boths_features)
+            predictions.append(this_windows_predictions)
+        except pandas.errors.EmptyDataError:  # There are no more lines to read
+            break
+
+    predictions = np.hstack(predictions)
+    return predictions
+
+
+if __name__ == "__main__":
+    cwa_1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), "S03_LB.cwa")
+    cwa_2 = os.path.join(os.path.dirname(os.path.abspath(__file__)), "S03_RT.cwa")
+    output_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "timestamped_predictions.csv")
+
+    complete_end_to_end_prediction(cwa_1, cwa_2, output_path)
