@@ -33,13 +33,15 @@ window_length = 3.0
 overlap = 0.0
 
 
-def complete_end_to_end_prediction(back_cwa, thigh_cwa, end_result_path, sampling_frequency=100):
+def complete_end_to_end_prediction(back_cwa, thigh_cwa, end_result_path, sampling_frequency=100,
+                                   minutes_to_read_in_a_chunk=15):
     a = time()
     back_csv_path, thigh_csv_path, time_csv_path = timesync_from_cwa(back_cwa, thigh_cwa)
     b = time()
     print("TIME: Conversion and sync:", format(b - a, ".2f"), "s")
     a = time()
-    predictions = load_csv_and_extract_features(back_csv_path, thigh_csv_path, sampling_frequency)
+    predictions = load_csv_and_extract_features(back_csv_path, thigh_csv_path, sampling_frequency,
+                                                minutes_to_read_in_a_chunk)
     b = time()
     print("TIME: Feature extraction and prediction:", format(b - a, ".2f"), "s")
     time_stamp_skip = int(sampling_frequency * window_length * (1.0 - overlap))
@@ -58,24 +60,30 @@ def complete_end_to_end_prediction(back_cwa, thigh_cwa, end_result_path, samplin
         os.remove(tmp_file)
 
 
-def load_csv_and_extract_features(back_csv_path, thigh_csv_path, sampling_frequency):
+def load_csv_and_extract_features(back_csv_path, thigh_csv_path, sampling_frequency, minutes_to_read_in_a_chunk):
     number_of_samples_in_a_window = int(sampling_frequency * window_length)
-    number_of_windows_to_read = 300  # Read and predict 15 minutes at a time
+    number_of_windows_to_read = int(round(minutes_to_read_in_a_chunk * 60 / window_length))
     number_of_samples_to_read = number_of_samples_in_a_window * number_of_windows_to_read
 
     window_start = 0
 
-
     predictions = []
+
     while True:
         try:
-            this_back_window = pd.read_csv(back_csv_path, skiprows=window_start, nrows=number_of_samples_to_read, delimiter=",", header=None).as_matrix()
-            this_thigh_window = pd.read_csv(thigh_csv_path, skiprows=window_start, nrows=number_of_samples_to_read, delimiter=",", header=None).as_matrix()
+            this_back_window = pd.read_csv(back_csv_path, skiprows=window_start, nrows=number_of_samples_to_read,
+                                           delimiter=",", header=None).as_matrix()
+            this_thigh_window = pd.read_csv(thigh_csv_path, skiprows=window_start, nrows=number_of_samples_to_read,
+                                            delimiter=",", header=None).as_matrix()
 
             window_start += number_of_samples_to_read
 
-            back_features = segment_acceleration_and_calculate_features(this_back_window, sampling_rate=sampling_frequency, window_length=window_length, overlap=overlap)
-            thigh_features = segment_acceleration_and_calculate_features(this_thigh_window, sampling_rate=sampling_frequency, window_length=window_length, overlap=overlap)
+            back_features = segment_acceleration_and_calculate_features(this_back_window,
+                                                                        sampling_rate=sampling_frequency,
+                                                                        window_length=window_length, overlap=overlap)
+            thigh_features = segment_acceleration_and_calculate_features(this_thigh_window,
+                                                                         sampling_rate=sampling_frequency,
+                                                                         window_length=window_length, overlap=overlap)
 
             boths_features = np.hstack((back_features, thigh_features))
             this_windows_predictions = models[sampling_frequency].predict(boths_features)
@@ -92,4 +100,4 @@ if __name__ == "__main__":
     cwa_2 = os.path.join(os.path.dirname(os.path.abspath(__file__)), "S03_RT.cwa")
     output_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "timestamped_predictions.csv")
 
-    complete_end_to_end_prediction(cwa_1, cwa_2, output_path)
+    complete_end_to_end_prediction(cwa_1, cwa_2, output_path, minutes_to_read_in_a_chunk=60)

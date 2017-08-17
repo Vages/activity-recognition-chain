@@ -51,3 +51,16 @@ from acrechain import complete_end_to_end_prediction
 
 complete_end_to_end_prediction(back_cwa, thigh_cwa, end_result_path, sampling_frequency=50)
 ```
+
+### Adjust the number of minutes that are read at a time
+The function makes the predictions for chunks of the file at a time to conserve memory. 
+The default size of a chunk is 15 minutes, but this parameter can be adjusted using the `minutes_to_read_in_a_chunk` 
+parameter.
+
+For example, to predict for 30 minutes at a time, you would type the following.
+
+```python
+from acrechain import complete_end_to_end_prediction
+
+complete_end_to_end_prediction(back_cwa, thigh_cwa, end_result_path, minutes_to_read_in_a_chunk=30)
+```
